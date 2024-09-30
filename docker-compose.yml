@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres:
-    image: postgres:12-alpine
+    image: postgres:17-alpine
     volumes:
       - /var/lib/postgresql/data
     environment:
@@ -13,7 +13,7 @@ services:
     build:
       context: .
       args:
-        - cachet_ver=2.4
+        - cachet_ver=3.x
     ports:
       - 80:8000
     links:
@@ -26,11 +26,11 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - DB_PREFIX=chq_
-      - APP_KEY=${APP_KEY:-null}
+      - APP_KEY=base64:7j3B2qtaZ0olHj6rIk2CBaBEeYtGSxLo2e+HbrfItKU=
       - APP_LOG=errorlog
-      - APP_ENV=${APP_ENV:-production}
-      - APP_DEBUG=false
-      - DEBUG=false
+      - APP_ENV:development
+      - APP_DEBUG=true
+      - DEBUG=true
     depends_on:
       - postgres
     restart: on-failure

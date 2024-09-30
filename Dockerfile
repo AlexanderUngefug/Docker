@@ -1,4 +1,4 @@
-FROM nginx:1.17.8-alpine
+FROM nginx:1.23-alpine
 
 EXPOSE 8000
 CMD ["/sbin/entrypoint.sh"]
@@ -9,56 +9,60 @@ ARG archive_url
 ENV cachet_ver ${cachet_ver:-2.4}
 ENV archive_url ${archive_url:-https://github.com/cachethq/Cachet/archive/${cachet_ver}.tar.gz}
 
-ENV COMPOSER_VERSION 1.9.0
+ENV COMPOSER_VERSION 2.2.0
 
 RUN apk add --no-cache --update \
-    mysql-client \
-    php7 \
-    php7-apcu \
-    php7-bcmath \
-    php7-ctype \
-    php7-curl \
-    php7-dom \
-    php7-fileinfo \
-    php7-fpm \
-    php7-gd \
-    php7-iconv \
-    php7-intl \
-    php7-json \
-    php7-mbstring \
-    php7-mcrypt \
-    php7-mysqlnd \
-    php7-opcache \
-    php7-openssl \
-    php7-pdo \
-    php7-pdo_mysql \
-    php7-pdo_pgsql \
-    php7-pdo_sqlite \
-    php7-phar \
-    php7-posix \
-    php7-redis \
-    php7-session \
-    php7-simplexml \
-    php7-soap \
-    php7-sqlite3 \
-    php7-tokenizer \
-    php7-xml \
-    php7-xmlwriter \
-    php7-zip \
-    php7-zlib \
+    php81 \
+    php81-apcu \
+    php81-bcmath \
+    php81-ctype \
+    php81-curl \
+    php81-dom \
+    php81-fileinfo \
+    php81-fpm \
+    php81-gd \
+    php81-iconv \
+    php81-intl \
+    php81-json \
+    php81-mbstring \
+    php81-mysqlnd \
+    php81-opcache \
+    php81-openssl \
+    php81-pdo \
+    php81-pdo_mysql \
+    php81-pdo_pgsql \
+    php81-pdo_sqlite \
+    php81-phar \
+    php81-posix \
+    php81-redis \
+    php81-session \
+    php81-simplexml \
+    php81-soap \
+    php81-sqlite3 \
+    php81-tokenizer \
+    php81-xml \
+    php81-xmlreader \
+    php81-xmlwriter \
+    php81-zip \
+    php81-zlib \
     postfix \
     postgresql \
     postgresql-client \
     sqlite \
+    openssh \
     sudo \
-    wget sqlite git curl bash grep \
+    wget \
+    git \
+    curl \
+    bash \
+    grep \
     supervisor
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    ln -sf /dev/stdout /var/log/php7/error.log && \
-    ln -sf /dev/stderr /var/log/php7/error.log
+    ln -sf /dev/stdout /var/log/php81/error.log && \
+    ln -sf /dev/stderr /var/log/php81/error.log
 
 RUN adduser -S -s /bin/bash -u 1001 -G root www-data
 
@@ -67,7 +71,7 @@ RUN echo "www-data	ALL=(ALL:ALL)	NOPASSWD:SETENV:	/usr/sbin/postfix" >> /etc/sud
 RUN touch /var/run/nginx.pid && \
     chown -R www-data:root /var/run/nginx.pid
 
-RUN chown -R www-data:root /etc/php7/php-fpm.d
+RUN chown -R www-data:root /etc/php81/php-fpm.d
 
 RUN mkdir -p /var/www/html && \
     mkdir -p /usr/share/nginx/cache && \
@@ -89,11 +93,11 @@ RUN wget ${archive_url} && \
     tar xzf ${cachet_ver}.tar.gz --strip-components=1 && \
     chown -R www-data:root /var/www/html && \
     rm -r ${cachet_ver}.tar.gz && \
-    php /bin/composer.phar global require "hirak/prestissimo:^0.3" && \
+    php /bin/composer.phar update && \
     php /bin/composer.phar install -o && \
     rm -rf bootstrap/cache/*
 
-COPY conf/php-fpm-pool.conf /etc/php7/php-fpm.d/www.conf
+COPY conf/php-fpm-pool.conf /etc/php81/php-fpm.d/www.conf
 COPY conf/supervisord.conf /etc/supervisor/supervisord.conf
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/nginx-site.conf /etc/nginx/conf.d/default.conf
@@ -102,5 +106,5 @@ COPY entrypoint.sh /sbin/entrypoint.sh
 
 USER root
 RUN chmod g+rwx /var/run/nginx.pid && \
-    chmod -R g+rw /var/www /usr/share/nginx/cache /var/cache/nginx /var/lib/nginx/ /etc/php7/php-fpm.d storage
+    chmod -R g+rw /var/www /usr/share/nginx/cache /var/cache/nginx /var/lib/nginx/ /etc/php81/php-fpm.d storage
 USER 1001
